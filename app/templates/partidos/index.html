@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Partidos{% endblock %}
+{% block page_title %}Fixture de Partidos{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('partidos.nuevo') }}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus"></i> Nuevo Partido
+</a>
+{% endblock %}
+{% block content %}
+<!-- FILTERS -->
+<div class="flex-center gap-2 mb-3" style="flex-wrap:wrap">
+  <form method="GET" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+    <select name="torneo_id" class="form-control" style="width:auto" onchange="this.form.submit()">
+      <option value="">Todos los torneos</option>
+      {% for t in torneos %}
+      <option value="{{ t.id }}" {% if t.id == torneo_id %}selected{% endif %}>{{ t.nombre }}</option>
+      {% endfor %}
+    </select>
+    <select name="estado" class="form-control" style="width:auto" onchange="this.form.submit()">
+      <option value="">Todos los estados</option>
+      <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendientes</option>
+      <option value="en_juego" {% if estado_filtro == 'en_juego' %}selected{% endif %}>En Juego</option>
+      <option value="finalizado" {% if estado_filtro == 'finalizado' %}selected{% endif %}>Finalizados</option>
+      <option value="suspendido" {% if estado_filtro == 'suspendido' %}selected{% endif %}>Suspendidos</option>
+    </select>
+  </form>
+  <span class="badge badge-gray">{{ partidos|length }} partidos</span>
+</div>
+
+{% if partidos %}
+<div style="display:flex;flex-direction:column;gap:.75rem">
+  {% for p in partidos %}
+  <a href="{{ url_for('partidos.detalle', pid=p.id) }}" style="text-decoration:none;color:inherit">
+  <div class="card" style="padding:1rem 1.5rem;transition:all .2s">
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <!-- Estado -->
+      <span class="badge badge-{% if p.estado == 'finalizado' %}blue{% elif p.estado == 'en_juego' %}green{% elif p.estado == 'suspendido' %}red{% else %}gray{% endif %}" style="flex-shrink:0">
+        {% if p.estado == 'en_juego' %}● {% endif %}{{ p.estado|replace('_',' ')|title }}
+      </span>
+      <!-- Teams & Score -->
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:1rem;min-width:0">
+        <span style="font-weight:700;text-align:right;flex:1">{{ p.local_nombre }}</span>
+        <div style="font-family:var(--font-head);font-weight:800;font-size:1.2rem;padding:.25rem .75rem;background:var(--bg-card2);border-radius:8px;flex-shrink:0">
+          {% if p.estado == 'finalizado' or p.estado == 'en_juego' %}
+            {{ p.goles_local }} — {{ p.goles_visitante }}
+          {% else %}
+            VS
+          {% endif %}
+        </div>
+        <span style="font-weight:700;flex:1">{{ p.visitante_nombre }}</span>
+      </div>
+      <!-- Meta -->
+      <div style="text-align:right;font-size:.75rem;color:var(--text-secondary);flex-shrink:0">
+        {% if p.jornada_num %}J{{ p.jornada_num }} · {% endif %}
+        {{ p.cancha or '' }}{% if p.fecha %} · {{ p.fecha[:10] }}{% endif %}
+      </div>
+    </div>
+  </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-futbol"></i>
+  <p>No hay partidos registrados.</p>
+  <a href="{{ url_for('partidos.nuevo') }}" class="btn btn-primary mt-2">Crear partido</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Torneos{% endblock %}
+{% block page_title %}Torneos{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('torneos.nuevo') }}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus"></i> Nuevo Torneo
+</a>
+{% endblock %}
+{% block content %}
+{% if torneos %}
+<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
+  {% for t in torneos %}
+  <div class="card" style="transition:all .2s;{% if t.estado == 'activo' %}border-color:rgba(0,230,118,0.25){% endif %}">
+    <div class="flex-between mb-2">
+      <span class="badge badge-{% if t.estado == 'activo' %}green{% elif t.estado == 'finalizado' %}blue{% else %}gray{% endif %}">
+        {{ t.estado|title }}
+      </span>
+      <span class="badge badge-gray">{{ t.tipo|replace('_',' ')|title }}</span>
+    </div>
+    <h3 style="font-family:var(--font-head);font-size:1.15rem;font-weight:800;margin-bottom:.4rem">{{ t.nombre }}</h3>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:1rem">
+      📅 {{ t.fecha_inicio or '—' }} → {{ t.fecha_fin or '—' }} · 
+      {{ t.max_equipos }} equipos máx
+    </p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <span style="font-size:.75rem;background:rgba(0,230,118,0.08);color:var(--accent);padding:.2rem .6rem;border-radius:6px">
+        V: {{ t.pts_victoria }}pts
+      </span>
+      <span style="font-size:.75rem;background:rgba(255,214,0,0.08);color:var(--accent-yellow);padding:.2rem .6rem;border-radius:6px">
+        E: {{ t.pts_empate }}pts
+      </span>
+    </div>
+    <div class="divider"></div>
+    <div class="flex-between">
+      <a href="{{ url_for('torneos.detalle', tid=t.id) }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-eye"></i> Ver
+      </a>
+      <div class="flex-center gap-1">
+        {% if t.estado == 'pendiente' %}
+        <a href="{{ url_for('torneos.activar', tid=t.id) }}" class="btn btn-primary btn-sm"
+           onclick="return confirm('¿Activar este torneo?')">
+          <i class="fas fa-play"></i> Activar
+        </a>
+        {% elif t.estado == 'activo' %}
+        <a href="{{ url_for('torneos.finalizar', tid=t.id) }}" class="btn btn-danger btn-sm"
+           onclick="return confirm('¿Finalizar el torneo?')">
+          <i class="fas fa-stop"></i> Finalizar
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-trophy"></i>
+  <p>No hay torneos registrados.</p>
+  <a href="{{ url_for('torneos.nuevo') }}" class="btn btn-primary mt-2">Crear primer torneo</a>
+</div>
+{% endif %}
+{% endblock %}

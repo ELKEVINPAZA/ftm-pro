@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}{{ equipo.nombre }}{% endblock %}
+{% block page_title %}{{ equipo.nombre }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('jugadores.nuevo') }}?equipo_id={{ equipo.id }}" class="btn btn-primary btn-sm">
+  <i class="fas fa-user-plus"></i> Agregar Jugador
+</a>
+<a href="{{ url_for('equipos.editar', eid=equipo.id) }}" class="btn btn-secondary btn-sm">
+  <i class="fas fa-edit"></i> Editar
+</a>
+{% endblock %}
+{% block content %}
+<div class="grid grid-3 mb-3">
+  <!-- TEAM CARD -->
+  <div class="card" style="grid-column:span 1;text-align:center">
+    {% if equipo.escudo %}
+      <img src="{{ url_for('static', filename=equipo.escudo) }}"
+           style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid var(--border);margin-bottom:1rem">
+    {% else %}
+      <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#000;margin:0 auto 1rem">
+        {{ equipo.nombre[:2]|upper }}
+      </div>
+    {% endif %}
+    <h2 style="font-family:var(--font-head);font-size:1.3rem;font-weight:800">{{ equipo.nombre }}</h2>
+    {% if equipo.ciudad %}<p style="color:var(--text-secondary);font-size:.85rem"><i class="fas fa-map-marker-alt"></i> {{ equipo.ciudad }}</p>{% endif %}
+    <div class="divider"></div>
+    <table style="width:100%;font-size:.82rem;text-align:left">
+      <tr>
+        <td style="color:var(--text-secondary);padding:.35rem 0">Entrenador</td>
+        <td style="font-weight:600">{{ equipo.entrenador or '—' }}</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text-secondary);padding:.35rem 0">Contacto</td>
+        <td>{{ equipo.contacto or '—' }}</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text-secondary);padding:.35rem 0">Plantilla</td>
+        <td><strong style="color:var(--accent)">{{ jugadores|length }}</strong> / {{ equipo.max_jugadores }}</td>
+      </tr>
+      {% if torneo %}
+      <tr>
+        <td style="color:var(--text-secondary);padding:.35rem 0">Torneo</td>
+        <td><a href="{{ url_for('torneos.detalle', tid=torneo.id) }}" style="color:var(--accent);text-decoration:none">{{ torneo.nombre }}</a></td>
+      </tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- PLAYERS TABLE -->
+  <div class="card" style="grid-column:span 2">
+    <div class="card-header">
+      <span class="card-title">Plantilla de Jugadores</span>
+      <span class="badge badge-gray">{{ jugadores|length }} jugadores</span>
+    </div>
+    {% if jugadores %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Jugador</th><th>Posición</th><th>Edad</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for j in jugadores %}
+          <tr>
+            <td>
+              <span style="font-family:var(--font-head);font-weight:800;color:var(--accent)">
+                {{ j.numero_camiseta or '—' }}
+              </span>
+            </td>
+            <td>
+              <div class="flex-center">
+                {% if j.foto %}
+                  <img src="{{ url_for('static', filename=j.foto) }}" class="team-badge">
+                {% else %}
+                  <div class="team-initials" style="font-size:.65rem">{{ (j.nombre[0] + j.apellido[0])|upper }}</div>
+                {% endif %}
+                <span style="font-weight:600">{{ j.nombre }} {{ j.apellido }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-{% if j.posicion == 'Portero' %}yellow{% elif j.posicion == 'Defensa' %}blue{% elif j.posicion == 'Mediocampista' %}teal{% else %}green{% endif %}">
+                {{ j.posicion or '—' }}
+              </span>
+            </td>
+            <td style="color:var(--text-secondary)">
+              {% if j.fecha_nacimiento %}
+                {% set age = ((2024 - j.fecha_nacimiento[:4]|int)) %}
+                {{ j.fecha_nacimiento[:4] }}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <div class="flex-center gap-1">
+                <a href="{{ url_for('jugadores.editar', jid=j.id) }}" class="btn btn-ghost btn-sm">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST" action="{{ url_for('jugadores.eliminar', jid=j.id) }}"
+                      data-confirm="¿Eliminar a {{ j.nombre }} {{ j.apellido }}?">
+                  <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--accent-red)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-user-group"></i>
+      <p>Sin jugadores registrados.</p>
+      <a href="{{ url_for('jugadores.nuevo') }}?equipo_id={{ equipo.id }}" class="btn btn-primary mt-2 btn-sm">
+        Agregar jugador
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

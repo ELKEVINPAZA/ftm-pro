@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios{% endblock %}
+{% block page_title %}Gestión de Usuarios{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('usuarios.nuevo') }}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus"></i> Nuevo Usuario
+</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Email</th><th>Acciones</th></tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td style="font-weight:700">{{ u.username }}</td>
+          <td>{{ u.nombre_completo or '—' }}</td>
+          <td>
+            <span class="badge badge-{% if u.rol == 'admin' %}green{% elif u.rol == 'arbitro' %}yellow{% else %}blue{% endif %}">
+              {{ u.rol }}
+            </span>
+          </td>
+          <td style="color:var(--text-secondary)">{{ u.email or '—' }}</td>
+          <td>
+            {% if u.id != 1 %}
+            <form method="POST" action="{{ url_for('usuarios.eliminar', uid=u.id) }}"
+                  data-confirm="¿Desactivar a {{ u.username }}?">
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fas fa-ban"></i> Desactivar
+              </button>
+            </form>
+            {% else %}
+            <span class="badge badge-gray">Principal</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

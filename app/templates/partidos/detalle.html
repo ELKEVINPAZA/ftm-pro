@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% block title %}{{ partido.local_nombre }} vs {{ partido.visitante_nombre }}{% endblock %}
+{% block page_title %}Detalle del Partido{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('partidos.index') }}" class="btn btn-secondary btn-sm">
+  <i class="fas fa-arrow-left"></i> Volver
+</a>
+{% endblock %}
+{% block content %}
+
+<!-- SCORE DISPLAY -->
+<div class="card mb-3" style="{% if partido.estado == 'en_juego' %}border-color:rgba(0,230,118,0.3){% endif %}">
+  <div style="text-align:center;margin-bottom:.75rem">
+    <span class="badge badge-{% if partido.estado == 'finalizado' %}blue{% elif partido.estado == 'en_juego' %}green{% elif partido.estado == 'suspendido' %}red{% else %}gray{% endif %}">
+      {% if partido.estado == 'en_juego' %}● {% endif %}{{ partido.estado|replace('_',' ')|title }}
+    </span>
+  </div>
+  <div class="score-display">
+    <div class="score-team">
+      {% if partido.local_escudo %}
+        <img src="{{ url_for('static', filename=partido.local_escudo) }}" class="team-badge" style="width:56px;height:56px;margin-bottom:.5rem">
+      {% else %}
+        <div class="team-initials" style="width:56px;height:56px;font-size:1rem;margin:0 auto .5rem">
+          {{ partido.local_nombre[:2]|upper }}
+        </div>
+      {% endif %}
+      <div class="score-team-name">{{ partido.local_nombre }}</div>
+      <div class="score-number" style="color:var(--accent)">{{ partido.goles_local }}</div>
+    </div>
+    <div class="score-vs">—</div>
+    <div class="score-team">
+      {% if partido.visitante_escudo %}
+        <img src="{{ url_for('static', filename=partido.visitante_escudo) }}" class="team-badge" style="width:56px;height:56px;margin-bottom:.5rem">
+      {% else %}
+        <div class="team-initials" style="width:56px;height:56px;font-size:1rem;margin:0 auto .5rem">
+          {{ partido.visitante_nombre[:2]|upper }}
+        </div>
+      {% endif %}
+      <div class="score-team-name">{{ partido.visitante_nombre }}</div>
+      <div class="score-number" style="color:var(--accent)">{{ partido.goles_visitante }}</div>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:.8rem;color:var(--text-secondary)">
+    {% if partido.cancha %}📍 {{ partido.cancha }}{% endif %}
+    {% if partido.fecha %} · 📅 {{ partido.fecha }}{% endif %}
+    {% if partido.arbitro_nombre %} · 🟨 {{ partido.arbitro_nombre }}{% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2">
+
+  <!-- RESULT MANAGEMENT -->
+  <div>
+    <!-- Update score -->
+    <div class="card mb-3">
+      <div class="card-header"><span class="card-title">📝 Actualizar Resultado</span></div>
+      <form method="POST" action="{{ url_for('partidos.actualizar_resultado', pid=partido.id) }}">
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Goles Local</label>
+            <input type="number" name="goles_local" class="form-control"
+                   value="{{ partido.goles_local }}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Goles Visitante</label>
+            <input type="number" name="goles_visitante" class="form-control"
+                   value="{{ partido.goles_visitante }}" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado del Partido</label>
+          <select name="estado" class="form-control">
+            <option value="pendiente" {% if partido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="en_juego" {% if partido.estado == 'en_juego' %}selected{% endif %}>En Juego</option>
+            <option value="finalizado" {% if partido.estado == 'finalizado' %}selected{% endif %}>Finalizado</option>
+            <option value="suspendido" {% if partido.estado == 'suspendido' %}selected{% endif %}>Suspendido</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">
+          <i class="fas fa-save"></i> Actualizar
+        </button>
+      </form>
+    </div>
+
+    <!-- Register goal -->
+    <div class="card mb-3">
+      <div class="card-header"><span class="card-title">⚽ Registrar Gol</span></div>
+      <form method="POST" action="{{ url_for('partidos.agregar_gol', pid=partido.id) }}">
+        <div class="form-group">
+          <label class="form-label">Jugador que Anota</label>
+          <select name="jugador_id" class="form-control" required id="gol-jugador">
+            <optgroup label="{{ partido.local_nombre }}">
+              {% for j in jugadores_local %}
+              <option value="{{ j.id }}" data-equipo="{{ partido.equipo_local_id }}">
+                #{{ j.numero_camiseta }} {{ j.nombre }} {{ j.apellido }}
+              </option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="{{ partido.visitante_nombre }}">
+              {% for j in jugadores_visitante %}
+              <option value="{{ j.id }}" data-equipo="{{ partido.equipo_visitante_id }}">
+                #{{ j.numero_camiseta }} {{ j.nombre }} {{ j.apellido }}
+              </option>
+              {% endfor %}
+            </optgroup>
+          </select>
+        </div>
+        <input type="hidden" name="equipo_id" id="gol-equipo">
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Minuto</label>
+            <input type="number" name="minuto" class="form-control" min="1" max="120" placeholder="45">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select name="tipo" class="form-control">
+              <option value="normal">Normal</option>
+              <option value="penal">Penal</option>
+              <option value="autogol">Autogol</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">
+          <i class="fas fa-futbol"></i> Registrar Gol
+        </button>
+      </form>
+    </div>
+
+    <!-- Register card -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">🟨 Registrar Tarjeta</span></div>
+      <form method="POST" action="{{ url_for('partidos.agregar_tarjeta', pid=partido.id) }}">
+        <div class="form-group">
+          <label class="form-label">Jugador</label>
+          <select name="jugador_id" class="form-control" required id="tarj-jugador">
+            <optgroup label="{{ partido.local_nombre }}">
+              {% for j in jugadores_local %}
+              <option value="{{ j.id }}" data-equipo="{{ partido.equipo_local_id }}">
+                #{{ j.numero_camiseta }} {{ j.nombre }} {{ j.apellido }}
+              </option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="{{ partido.visitante_nombre }}">
+              {% for j in jugadores_visitante %}
+              <option value="{{ j.id }}" data-equipo="{{ partido.equipo_visitante_id }}">
+                #{{ j.numero_camiseta }} {{ j.nombre }} {{ j.apellido }}
+              </option>
+              {% endfor %}
+            </optgroup>
+          </select>
+        </div>
+        <input type="hidden" name="equipo_id" id="tarj-equipo">
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select name="tipo" class="form-control">
+              <option value="amarilla">🟨 Amarilla</option>
+              <option value="roja">🟥 Roja</option>
+              <option value="doble_amarilla">🟨🟥 Doble Amarilla</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Minuto</label>
+            <input type="number" name="minuto" class="form-control" min="1" max="120">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo</label>
+          <input type="text" name="motivo" class="form-control" placeholder="Descripción (opcional)">
+        </div>
+        <button type="submit" class="btn btn-primary w-full">
+          <i class="fas fa-square"></i> Registrar Tarjeta
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EVENTS LOG -->
+  <div>
+    <!-- Goals -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <span class="card-title">⚽ Goles del Partido</span>
+        <span class="badge badge-green">{{ goles|length }}</span>
+      </div>
+      {% if goles %}
+      <div style="display:flex;flex-direction:column;gap:.4rem">
+        {% for g in goles %}
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--bg-card2);border-radius:8px">
+          <span style="font-size:1.1rem">{{ '🥅' if g.tipo == 'autogol' else ('🅿️' if g.tipo == 'penal' else '⚽') }}</span>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:.875rem">{{ g.jugador_nombre }}</div>
+            <div style="font-size:.75rem;color:var(--text-secondary)">{{ g.equipo_nombre }} · #{{ g.numero_camiseta }}</div>
+          </div>
+          <span style="font-family:var(--font-head);font-weight:700;color:var(--accent)">
+            {% if g.minuto %}{{ g.minuto }}'{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:1.5rem">
+        <p>Sin goles registrados</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Cards -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🟨 Tarjetas del Partido</span>
+        <span class="badge badge-yellow">{{ tarjetas|length }}</span>
+      </div>
+      {% if tarjetas %}
+      <div style="display:flex;flex-direction:column;gap:.4rem">
+        {% for t in tarjetas %}
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--bg-card2);border-radius:8px">
+          <span style="font-size:1.1rem">
+            {{ '🟥' if t.tipo in ('roja','doble_amarilla') else '🟨' }}
+          </span>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:.875rem">{{ t.jugador_nombre }}</div>
+            <div style="font-size:.75rem;color:var(--text-secondary)">
+              {{ t.equipo_nombre }} · {{ t.tipo|replace('_',' ')|title }}
+              {% if t.motivo %} · {{ t.motivo }}{% endif %}
+            </div>
+          </div>
+          <span style="font-family:var(--font-head);font-weight:700;color:var(--accent-yellow)">
+            {% if t.minuto %}{{ t.minuto }}'{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:1.5rem">
+        <p>Sin tarjetas registradas</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-set equipo_id based on selected jugador
+function setupEquipoSync(jugadorSel, equipoInput) {
+  function update() {
+    const opt = jugadorSel.options[jugadorSel.selectedIndex];
+    if (opt) equipoInput.value = opt.dataset.equipo || '';
+  }
+  jugadorSel.addEventListener('change', update);
+  update();
+}
+setupEquipoSync(
+  document.getElementById('gol-jugador'),
+  document.getElementById('gol-equipo')
+);
+setupEquipoSync(
+  document.getElementById('tarj-jugador'),
+  document.getElementById('tarj-equipo')
+);
+</script>
+{% endblock %}

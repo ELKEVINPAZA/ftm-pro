@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if torneo else 'Nuevo' }} Torneo{% endblock %}
+{% block page_title %}{{ 'Editar' if torneo else 'Nuevo' }} Torneo{% endblock %}
+{% block content %}
+<div style="max-width:700px;margin:0 auto">
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">🏆 Datos del Torneo</span>
+  </div>
+  <form method="POST">
+    <div class="form-grid form-grid-2">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Nombre del Torneo *</label>
+        <input type="text" name="nombre" class="form-control"
+               value="{{ torneo.nombre if torneo else '' }}"
+               placeholder="Ej: Copa Ciudad 2024" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de Torneo *</label>
+        <select name="tipo" class="form-control">
+          <option value="liga" {% if torneo and torneo.tipo == 'liga' %}selected{% endif %}>Liga (Todos vs Todos)</option>
+          <option value="eliminacion" {% if torneo and torneo.tipo == 'eliminacion' %}selected{% endif %}>Eliminación Directa</option>
+          <option value="grupos_eliminacion" {% if torneo and torneo.tipo == 'grupos_eliminacion' %}selected{% endif %}>Grupos + Eliminación</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Máx. Equipos</label>
+        <input type="number" name="max_equipos" class="form-control"
+               value="{{ torneo.max_equipos if torneo else 16 }}" min="2" max="64">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha Inicio</label>
+        <input type="date" name="fecha_inicio" class="form-control"
+               value="{{ torneo.fecha_inicio if torneo else '' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha Fin</label>
+        <input type="date" name="fecha_fin" class="form-control"
+               value="{{ torneo.fecha_fin if torneo else '' }}">
+      </div>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:.8rem;color:var(--text-secondary);font-weight:600;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.06em">Sistema de Puntos</p>
+    <div class="form-grid form-grid-3">
+      <div class="form-group">
+        <label class="form-label">Victoria (pts)</label>
+        <input type="number" name="pts_victoria" class="form-control"
+               value="{{ torneo.pts_victoria if torneo else 3 }}" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Empate (pts)</label>
+        <input type="number" name="pts_empate" class="form-control"
+               value="{{ torneo.pts_empate if torneo else 1 }}" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Derrota (pts)</label>
+        <input type="number" name="pts_derrota" class="form-control"
+               value="{{ torneo.pts_derrota if torneo else 0 }}" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reglas del Torneo</label>
+      <textarea name="reglas" class="form-control" rows="4"
+                placeholder="Escribe las reglas y condiciones del torneo...">{{ torneo.reglas if torneo else '' }}</textarea>
+    </div>
+    <div class="flex-between mt-2">
+      <a href="{{ url_for('torneos.index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Cancelar
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save"></i> {{ 'Actualizar' if torneo else 'Crear Torneo' }}
+      </button>
+    </div>
+  </form>
+</div>
+</div>
+{% endblock %}

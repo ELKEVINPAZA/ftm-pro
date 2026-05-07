@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}{{ torneo.nombre }}{% endblock %}
+{% block page_title %}{{ torneo.nombre }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('equipos.nuevo') }}?torneo_id={{ torneo.id }}" class="btn btn-secondary btn-sm">
+  <i class="fas fa-shield-halved"></i> Agregar Equipo
+</a>
+<a href="{{ url_for('partidos.nuevo') }}" class="btn btn-primary btn-sm">
+  <i class="fas fa-futbol"></i> Nuevo Partido
+</a>
+{% endblock %}
+{% block content %}
+<div class="grid grid-3 mb-3">
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-shield-halved"></i></div>
+    <div><div class="stat-value">{{ stats.equipos }}</div><div class="stat-label">Equipos Inscritos</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-futbol"></i></div>
+    <div><div class="stat-value">{{ stats.partidos }}</div><div class="stat-label">Partidos Programados</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon yellow"><i class="fas fa-check"></i></div>
+    <div><div class="stat-value">{{ stats.finalizados }}</div><div class="stat-label">Partidos Finalizados</div></div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <!-- INFO -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Información del Torneo</span></div>
+    <table style="width:100%;font-size:.875rem">
+      <tr><td style="color:var(--text-secondary);padding:.4rem 0;width:40%">Tipo</td>
+          <td style="font-weight:600">{{ torneo.tipo|replace('_',' ')|title }}</td></tr>
+      <tr><td style="color:var(--text-secondary);padding:.4rem 0">Estado</td>
+          <td><span class="badge badge-{% if torneo.estado == 'activo' %}green{% elif torneo.estado == 'finalizado' %}blue{% else %}gray{% endif %}">{{ torneo.estado|title }}</span></td></tr>
+      <tr><td style="color:var(--text-secondary);padding:.4rem 0">Inicio</td>
+          <td>{{ torneo.fecha_inicio or '—' }}</td></tr>
+      <tr><td style="color:var(--text-secondary);padding:.4rem 0">Fin</td>
+          <td>{{ torneo.fecha_fin or '—' }}</td></tr>
+      <tr><td style="color:var(--text-secondary);padding:.4rem 0">Puntos V/E/D</td>
+          <td><strong style="color:var(--accent)">{{ torneo.pts_victoria }}</strong> / {{ torneo.pts_empate }} / {{ torneo.pts_derrota }}</td></tr>
+    </table>
+    <div class="divider"></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      {% if torneo.estado == 'pendiente' %}
+      <a href="{{ url_for('torneos.activar', tid=torneo.id) }}" class="btn btn-primary btn-sm"
+         onclick="return confirm('¿Activar torneo?')">
+        <i class="fas fa-play"></i> Activar
+      </a>
+      {% elif torneo.estado == 'activo' %}
+      <a href="{{ url_for('torneos.finalizar', tid=torneo.id) }}" class="btn btn-danger btn-sm"
+         onclick="return confirm('¿Finalizar torneo?')">
+        <i class="fas fa-stop"></i> Finalizar
+      </a>
+      {% endif %}
+      <a href="{{ url_for('stats.index', torneo_id=torneo.id) }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-chart-bar"></i> Estadísticas
+      </a>
+      <a href="{{ url_for('partidos.index', torneo_id=torneo.id) }}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-calendar"></i> Fixture
+      </a>
+    </div>
+  </div>
+
+  <!-- FIXTURE GENERATOR -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-wand-magic-sparkles" style="color:var(--accent)"></i> Generar Fixture</span>
+    </div>
+    <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:1.25rem">
+      Genera automáticamente el calendario de partidos basado en los equipos inscritos.
+      Tipo actual: <strong style="color:var(--accent)">{{ torneo.tipo|replace('_',' ')|title }}</strong>
+    </p>
+    <form method="POST" action="{{ url_for('torneos.generar_fixture', tid=torneo.id) }}"
+          onsubmit="return confirm('¿Generar fixture? Esto creará todos los partidos automáticamente.')">
+      <div class="form-group">
+        <label class="form-label">Fecha de inicio de jornadas</label>
+        <input type="date" name="fecha_inicio" class="form-control"
+               value="{{ torneo.fecha_inicio or '' }}">
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-wand-magic-sparkles"></i> Generar Fixture
+      </button>
+    </form>
+    {% if torneo.reglas %}
+    <div class="divider"></div>
+    <p style="font-size:.75rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Reglas</p>
+    <p style="font-size:.8rem;color:var(--text-secondary)">{{ torneo.reglas }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

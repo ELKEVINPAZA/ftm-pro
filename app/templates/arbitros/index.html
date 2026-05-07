@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Árbitros{% endblock %}
+{% block page_title %}Árbitros{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('arbitros.nuevo') }}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus"></i> Nuevo Árbitro
+</a>
+{% endblock %}
+{% block content %}
+{% if arbitros %}
+<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">
+  {% for a in arbitros %}
+  <div class="card">
+    <div style="text-align:center;padding-bottom:1rem">
+      <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ffd600,#ff6d00);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto .75rem">
+        🟨
+      </div>
+      <h3 style="font-family:var(--font-head);font-weight:800">{{ a.nombre }} {{ a.apellido }}</h3>
+      {% if a.licencia %}<p style="font-size:.78rem;color:var(--text-secondary)">Licencia: {{ a.licencia }}</p>{% endif %}
+      {% if a.telefono %}<p style="font-size:.78rem;color:var(--text-secondary)"><i class="fas fa-phone"></i> {{ a.telefono }}</p>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-whistle"></i>
+  <p>No hay árbitros registrados.</p>
+  <a href="{{ url_for('arbitros.nuevo') }}" class="btn btn-primary mt-2">Registrar árbitro</a>
+</div>
+{% endif %}
+{% endblock %}

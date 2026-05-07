@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Estadísticas{% endblock %}
+{% block page_title %}Estadísticas{% endblock %}
+{% block content %}
+<!-- SELECTOR TORNEO -->
+<form method="GET" class="mb-3" style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+  <select name="torneo_id" class="form-control" style="width:auto;min-width:220px" onchange="this.form.submit()">
+    {% for t in torneos %}
+    <option value="{{ t.id }}" {% if t.id == torneo_id %}selected{% endif %}>{{ t.nombre }}</option>
+    {% endfor %}
+  </select>
+  {% if torneo %}<span class="badge badge-{% if torneo.estado == 'activo' %}green{% else %}gray{% endif %}">{{ torneo.estado|title }}</span>{% endif %}
+</form>
+
+{% if torneo %}
+<!-- TABLA DE POSICIONES COMPLETA -->
+<div class="card mb-3">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-list-ol" style="color:var(--accent)"></i> Tabla de Posiciones</span>
+    <span class="badge badge-gray">{{ tabla|length }} equipos</span>
+  </div>
+  {% if tabla %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Equipo</th>
+          <th class="num">PJ</th>
+          <th class="num">PG</th>
+          <th class="num">PE</th>
+          <th class="num">PP</th>
+          <th class="num">GF</th>
+          <th class="num">GC</th>
+          <th class="num">DG</th>
+          <th class="num">PTS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tabla %}
+        <tr style="{% if loop.index == 1 %}background:rgba(0,230,118,0.04){% endif %}">
+          <td>
+            <span class="rank-badge rank-{% if loop.index <= 3 %}{{ loop.index }}{% else %}other{% endif %}">
+              {{ loop.index }}
+            </span>
+          </td>
+          <td>
+            <div class="team-name-cell">
+              {% if t.escudo %}
+                <img src="{{ url_for('static', filename=t.escudo) }}" class="team-badge">
+              {% else %}
+                <div class="team-initials">{{ t.nombre[:2]|upper }}</div>
+              {% endif %}
+              <span>{{ t.nombre }}</span>
+            </div>
+          </td>
+          <td class="num">{{ t.pj }}</td>
+          <td class="num" style="color:var(--accent)">{{ t.pg }}</td>
+          <td class="num" style="color:var(--accent-yellow)">{{ t.pe }}</td>
+          <td class="num" style="color:var(--accent-red)">{{ t.pp }}</td>
+          <td class="num">{{ t.gf }}</td>
+          <td class="num">{{ t.gc }}</td>
+          <td class="num" style="color:{% if t.dg > 0 %}var(--accent){% elif t.dg < 0 %}var(--accent-red){% else %}var(--text-secondary){% endif %};font-weight:600">
+            {% if t.dg > 0 %}+{% endif %}{{ t.dg }}
+          </td>
+          <td class="num">
+            <span style="font-family:var(--font-head);font-size:1.1rem;font-weight:900;color:var(--accent)">
+              {{ t.puntos }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><i class="fas fa-list-ol"></i><p>Sin partidos finalizados aún</p></div>
+  {% endif %}
+</div>
+
+<div class="grid grid-2">
+  <!-- GOLEADORES -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-star" style="color:var(--accent-yellow)"></i> Tabla de Goleadores</span>
+    </div>
+    {% if goleadores %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Jugador</th><th>Equipo</th><th class="num">⚽ Goles</th></tr>
+        </thead>
+        <tbody>
+          {% for g in goleadores %}
+          <tr>
+            <td>
+              <span class="rank-badge rank-{% if loop.index <= 3 %}{{ loop.index }}{% else %}other{% endif %}">
+                {{ loop.index }}
+              </span>
+            </td>
+            <td style="font-weight:600">{{ g.jugador }}</td>
+            <td style="color:var(--text-secondary);font-size:.82rem">{{ g.equipo }}</td>
+            <td class="num">
+              <span style="font-family:var(--font-head);font-weight:800;font-size:1.1rem;color:var(--accent)">
+                {{ g.goles }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><i class="fas fa-star"></i><p>Sin goles registrados</p></div>
+    {% endif %}
+  </div>
+
+  <!-- FAIR PLAY -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-handshake" style="color:var(--accent2)"></i> Fair Play</span>
+      <span style="font-size:.72rem;color:var(--text-secondary)">(menos puntos = mejor)</span>
+    </div>
+    {% if fair_play %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Equipo</th><th class="num">🟨</th><th class="num">🟥</th><th class="num">Pts</th></tr>
+        </thead>
+        <tbody>
+          {% for f in fair_play %}
+          <tr>
+            <td>
+              <div class="team-name-cell">
+                {% if f.escudo %}
+                  <img src="{{ url_for('static', filename=f.escudo) }}" class="team-badge">
+                {% else %}
+                  <div class="team-initials">{{ f.equipo[:2]|upper }}</div>
+                {% endif %}
+                {{ f.equipo }}
+              </div>
+            </td>
+            <td class="num" style="color:var(--accent-yellow)">{{ f.amarillas }}</td>
+            <td class="num" style="color:var(--accent-red)">{{ f.rojas }}</td>
+            <td class="num" style="font-weight:700">{{ f.puntos_fp }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><i class="fas fa-handshake"></i><p>Sin tarjetas registradas</p></div>
+    {% endif %}
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-chart-bar"></i>
+  <p>Selecciona un torneo para ver las estadísticas.</p>
+</div>
+{% endif %}
+{% endblock %}
