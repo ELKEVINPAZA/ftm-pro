@@ -13,31 +13,34 @@ def create_app():
                 template_folder='app/templates',
                 static_folder='app/static')
     
-    # Configuration
     app.secret_key = os.environ.get('SECRET_KEY', 'ft_manager_secret_2024')
-    app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'football.db')
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'app/static/uploads')
-    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
     
-    # Ensure upload directories exist
+    # Base de datos — usa /data en Railway, local si no
+    db_dir = os.environ.get('DB_PATH', os.path.dirname(__file__))
+    app.config['DATABASE'] = os.path.join(db_dir, 'football.db')
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'app/static/uploads')
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+    
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'escudos'), exist_ok=True)
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'fotos'), exist_ok=True)
     
-    # Initialize database
     with app.app_context():
         init_db(app)
     
-    # Register all blueprints
     register_blueprints(app)
     
     return app
 
 
+# Al final de run.py
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
+    port = int(os.environ.get('PORT', 8080))
     print("=" * 60)
     print("  FOOTBALL TOURNAMENT MANAGER")
-    print("  Servidor iniciado en: http://localhost:5000")
+    print(f"  Servidor: http://localhost:{port}")
     print("  Usuario: admin | Contraseña: admin123")
     print("=" * 60)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=port)
+    
