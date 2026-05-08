@@ -502,9 +502,6 @@ textarea.form-control { resize: vertical; min-height: 100px; }
     <a href="{{ url_for('arbitros.index') }}" class="nav-item {% if 'arbitros' in request.endpoint %}active{% endif %}">
       <i class="fas fa-whistle"></i> Árbitros
     </a>
-    <a href="{{ url_for('usuarios.index') }}" class="nav-item {% if 'usuarios' in request.endpoint %}active{% endif %}">
-      <i class="fas fa-users-gear"></i> Usuarios
-    </a>
     <div class="nav-section-label">Análisis</div>
     <a href="{{ url_for('stats.index') }}" class="nav-item {% if 'stats' in request.endpoint %}active{% endif %}">
       <i class="fas fa-chart-bar"></i> Estadísticas
